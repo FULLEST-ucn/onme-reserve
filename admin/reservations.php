@@ -27,7 +27,7 @@ try {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>予約一覧 | ON;ME</title>
-  <link rel="stylesheet" href="../assets/css/admin.css?v=6">
+  <link rel="stylesheet" href="../assets/css/admin.css?v=7">
 </head>
 <body class="admin-body">
 <header class="admin-header">
@@ -59,7 +59,13 @@ try {
               <td><?= htmlspecialchars($r['staff_name'] ?? '-') ?></td>
               <td><?= htmlspecialchars($r['menu_name'] ?? '-') ?></td>
               <td><?= htmlspecialchars($r['payment_method'] ?? '-') ?></td>
-              <td><span class="status-pill"><?= htmlspecialchars($r['status'] ?? '-') ?></span></td>
+              <td>
+                <select class="status-select" data-id="<?= (int)$r['id'] ?>">
+                  <?php foreach(['reserved'=>'予約済','confirmed'=>'確定','completed'=>'完了','cancelled'=>'キャンセル'] as $key=>$label): ?>
+                    <option value="<?= $key ?>" <?= $r['status']===$key?'selected':'' ?>><?= $label ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -67,5 +73,6 @@ try {
     </div>
   </section>
 </main>
+<script src="../assets/js/admin-operations.js?v=7"></script>
 </body>
 </html>
