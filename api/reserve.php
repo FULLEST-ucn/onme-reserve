@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/line-notify.php';
 header('Content-Type: application/json; charset=utf-8');
 
 function to_minute($time) {
@@ -48,8 +49,7 @@ try {
   $startDateTime = "$date $startTime:00";
   $endDateTime = "$date $endTime:00";
 
-  // 1) メニュー確認
-  $menuStmt = $pdo->prepare("SELECT id, price FROM menus WHERE id = ? AND is_active = 1");
+  $menuStmt = $pdo->prepare("SELECT id, name, price FROM menus WHERE id = ? AND is_active = 1");
   $menuStmt->execute([$menuId]);
   $menu = $menuStmt->fetch(PDO::FETCH_ASSOC);
   if (!$menu) {
@@ -57,7 +57,14 @@ try {
     fail('選択されたメニューが見つかりません。');
   }
 
-  // 2) 受付可能時間内か確認
+  $staffStmt = $pdo->prepare("SELECT id, name FROM staffs WHERE id = ? AND is_active = 1");
+  $staffStmt->execute([$staffId]);
+  $staff = $staffStmt->fetch(PDO::FETCH_ASSOC);
+  if (!$staff) {
+    $pdo->rollBack();
+    fail('選択されたスタッフが見つかりません。');
+  }
+
   $avStmt = $pdo->prepare("
     SELECT DATE_FORMAT(start_datetime, '%H:%i') AS start_time,
            DATE_FORMAT(end_datetime, '%H:%i') AS end_time
@@ -84,7 +91,6 @@ try {
     fail('選択された時間は受付可能時間外です。');
   }
 
-  // 3) 予約重複確認（同時送信対策のためトランザクション内で確認）
   $resStmt = $pdo->prepare("
     SELECT id,
            DATE_FORMAT(start_datetime, '%H:%i') AS start_time,
@@ -105,7 +111,6 @@ try {
     }
   }
 
-  // 4) 顧客作成 or 更新
   $customerId = null;
 
   if ($lineUserId !== '') {
@@ -136,7 +141,6 @@ try {
     $customerId = $pdo->lastInsertId();
   }
 
-  // 5) 予約登録
   $stmt = $pdo->prepare("
     INSERT INTO reservations
       (customer_id, menu_id, staff_id, start_datetime, end_datetime, status, payment_method, created_at, updated_at)
@@ -147,6 +151,23 @@ try {
 
   $reservationId = $pdo->lastInsertId();
   $pdo->commit();
+
+  $reservationPayload = [
+    'date' => $date,
+    'start_time' => $startTime,
+    'end_time' => $endTime,
+    'customer_name' => $name,
+    'phone' => $phone,
+    'staff_name' => $staff['name'],
+    'menu_name' => $menu['name'],
+    'payment_method' => $paymentMethod,
+  ];
+
+  if ($lineUserId !== '') {
+    line_push_message($lineUserId, format_reservation_message($reservationPayload));
+  }
+
+  line_notify_admins(format_admin_reservation_message($reservationPayload));
 
   echo json_encode([
     'ok' => true,
