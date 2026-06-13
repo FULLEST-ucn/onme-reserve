@@ -1,39 +1,84 @@
 <?php
-require dirname(__DIR__) . '/config/bootstrap.php';
+require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json; charset=utf-8');
 
-$staff = $_GET['staff'] ?? '';
-$minutes = max(30, (int)($_GET['minutes'] ?? 90));
+$date = $_GET['date'] ?? date('Y-m-d');
+$staffId = (int)($_GET['staff_id'] ?? 0);
+$duration = (int)($_GET['duration'] ?? 0);
+$step = 30;
 
-$availability = storage_json('availability', [
-    ['id'=>'a1','staff'=>'kiho','date'=>date('Y-m-d', strtotime('+1 day')),'start'=>'13:00','end'=>'17:00'],
-    ['id'=>'a2','staff'=>'yuina','date'=>date('Y-m-d', strtotime('+1 day')),'start'=>'10:00','end'=>'15:00'],
-]);
-$reservations = storage_json('reservations', []);
-
-function tmin(string $time): int {
-    [$h,$m] = array_map('intval', explode(':', $time));
-    return $h*60+$m;
+if (!$staffId || $duration <= 0) {
+  echo json_encode([], JSON_UNESCAPED_UNICODE);
+  exit;
 }
-function fmt(int $min): string {
-    return sprintf('%02d:%02d', intdiv($min,60), $min%60);
-}
-function overlap(int $s1,int $e1,int $s2,int $e2): bool { return $s1 < $e2 && $s2 < $e1; }
 
-$slots=[];
-foreach($availability as $a){
-    if(($a['staff'] ?? '') !== $staff) continue;
-    $start=tmin($a['start']); $end=tmin($a['end']);
-    for($s=$start; $s+$minutes <= $end; $s+=30){
-        $e=$s+$minutes; $blocked=false;
-        foreach($reservations as $r){
-            if(($r['staff']['id'] ?? $r['staff_id'] ?? '') !== $staff) continue;
-            if(($r['slot']['date'] ?? $r['date'] ?? '') !== $a['date']) continue;
-            $rs=tmin($r['slot']['start'] ?? $r['start'] ?? '00:00');
-            $re=tmin($r['slot']['end'] ?? $r['end'] ?? '00:00');
-            if(overlap($s,$e,$rs,$re)){ $blocked=true; break; }
+function to_minute($time) {
+  [$h, $m] = array_map('intval', explode(':', substr($time, 0, 5)));
+  return $h * 60 + $m;
+}
+function to_time($minute) {
+  return sprintf('%02d:%02d', floor($minute / 60), $minute % 60);
+}
+function overlaps($aStart, $aEnd, $bStart, $bEnd) {
+  return $aStart < $bEnd && $aEnd > $bStart;
+}
+
+try {
+  $pdo = db();
+
+  $avStmt = $pdo->prepare("
+    SELECT DATE_FORMAT(start_datetime, '%H:%i') AS start_time,
+           DATE_FORMAT(end_datetime, '%H:%i') AS end_time
+    FROM availability
+    WHERE staff_id = ?
+      AND DATE(start_datetime) = ?
+      AND status = 'available'
+    ORDER BY start_datetime
+  ");
+  $avStmt->execute([$staffId, $date]);
+  $availability = $avStmt->fetchAll(PDO::FETCH_ASSOC);
+
+  $resStmt = $pdo->prepare("
+    SELECT DATE_FORMAT(start_datetime, '%H:%i') AS start_time,
+           DATE_FORMAT(end_datetime, '%H:%i') AS end_time
+    FROM reservations
+    WHERE staff_id = ?
+      AND DATE(start_datetime) = ?
+      AND status IN ('reserved','confirmed')
+    ORDER BY start_datetime
+  ");
+  $resStmt->execute([$staffId, $date]);
+  $reservations = $resStmt->fetchAll(PDO::FETCH_ASSOC);
+
+  $slots = [];
+
+  foreach ($availability as $av) {
+    $start = to_minute($av['start_time']);
+    $end = to_minute($av['end_time']);
+
+    for ($current = $start; $current + $duration <= $end; $current += $step) {
+      $candidateEnd = $current + $duration;
+      $blocked = false;
+
+      foreach ($reservations as $r) {
+        if (overlaps($current, $candidateEnd, to_minute($r['start_time']), to_minute($r['end_time']))) {
+          $blocked = true;
+          break;
         }
-        if(!$blocked) $slots[]=['date'=>$a['date'],'start'=>fmt($s),'end'=>fmt($e),'staff'=>$staff];
+      }
+
+      if (!$blocked) {
+        $slots[] = [
+          'start_time' => to_time($current),
+          'end_time' => to_time($candidateEnd),
+          'label' => to_time($current) . '〜' . to_time($candidateEnd),
+        ];
+      }
     }
+  }
+
+  echo json_encode($slots, JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
+  http_response_code(500);
+  echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
 }
-echo json_encode(['ok'=>true,'slots'=>$slots], JSON_UNESCAPED_UNICODE);
