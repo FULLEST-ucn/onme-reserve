@@ -8,6 +8,13 @@ $method = $_SERVER['REQUEST_METHOD'];
 function input_json() {
   return json_decode(file_get_contents('php://input'), true) ?: [];
 }
+function to_minute($time) {
+  [$h, $m] = array_map('intval', explode(':', substr($time, 0, 5)));
+  return $h * 60 + $m;
+}
+function overlaps($aStart, $aEnd, $bStart, $bEnd) {
+  return $aStart < $bEnd && $aEnd > $bStart;
+}
 
 try {
   $pdo = db();
@@ -70,6 +77,27 @@ try {
     }
 
     if ($kind === 'reservation') {
+      $targetStart = to_minute($start);
+      $targetEnd = to_minute($end);
+
+      $check = $pdo->prepare("
+        SELECT id, DATE_FORMAT(start_datetime, '%H:%i') AS start_time,
+                  DATE_FORMAT(end_datetime, '%H:%i') AS end_time
+        FROM reservations
+        WHERE staff_id = ?
+          AND DATE(start_datetime) = ?
+          AND id <> ?
+          AND status IN ('reserved','confirmed')
+      ");
+      $check->execute([$staffId, $date, $id]);
+      foreach ($check->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        if (overlaps($targetStart, $targetEnd, to_minute($r['start_time']), to_minute($r['end_time']))) {
+          http_response_code(409);
+          echo json_encode(['ok' => false, 'error' => '他の予約と重複しています。'], JSON_UNESCAPED_UNICODE);
+          exit;
+        }
+      }
+
       $stmt = $pdo->prepare("
         UPDATE reservations
         SET staff_id = ?, start_datetime = ?, end_datetime = ?, updated_at = NOW()

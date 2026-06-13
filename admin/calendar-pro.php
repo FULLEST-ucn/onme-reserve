@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 
 $date = $_GET['date'] ?? date('Y-m-d');
+$view = $_GET['view'] ?? 'day';
 $staffs = [];
 try {
   $pdo = db();
@@ -19,7 +20,7 @@ try {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Calendar Pro | ON;ME</title>
-  <link rel="stylesheet" href="../assets/css/admin-pro.css?v=12">
+  <link rel="stylesheet" href="../assets/css/admin-pro.css?v=13">
 </head>
 <body class="pro-body">
   <aside class="pro-sidebar">
@@ -52,6 +53,12 @@ try {
       </div>
     </header>
 
+    <section class="pro-view-switch">
+      <a class="active" href="./calendar-pro.php?view=day&date=<?= htmlspecialchars($date) ?>">Day</a>
+      <a href="./calendar-week.php?date=<?= htmlspecialchars($date) ?>">Week</a>
+      <span>ドラッグ移動 / 下端で長さ変更 / 横ドラッグで担当変更</span>
+    </section>
+
     <section class="pro-kpi">
       <article><span>Reservations</span><strong id="kpiReservations">0</strong></article>
       <article><span>Available blocks</span><strong id="kpiAvailable">0</strong></article>
@@ -61,6 +68,7 @@ try {
 
     <section class="pro-calendar-card">
       <div class="pro-calendar" id="proCalendar"
+        style="--staff-count:<?= max(1,count($staffs)) ?>"
         data-date="<?= htmlspecialchars($date) ?>"
         data-staff='<?= htmlspecialchars(json_encode($staffs), ENT_QUOTES) ?>'>
         <div class="pro-time-axis">
@@ -75,8 +83,9 @@ try {
           <div class="pro-staff-col" data-staff-id="<?= (int)$staff['id'] ?>">
             <div class="pro-staff-head"><?= htmlspecialchars($staff['name']) ?></div>
             <div class="pro-grid">
+              <div class="now-line" hidden><span>NOW</span></div>
               <?php for($i=0; $i<30; $i++): ?>
-                <div class="pro-cell" data-index="<?= $i ?>"></div>
+                <button type="button" class="pro-cell" data-index="<?= $i ?>" aria-label="空き時間を追加"></button>
               <?php endfor; ?>
             </div>
           </div>
@@ -113,6 +122,9 @@ try {
     </div>
   </div>
 
-  <script src="../assets/js/admin-calendar-pro.js?v=12"></script>
+  <div class="drag-tooltip" id="dragTooltip" hidden></div>
+  <div class="pro-toast" id="proToast" hidden></div>
+
+  <script src="../assets/js/admin-calendar-pro.js?v=13"></script>
 </body>
 </html>
