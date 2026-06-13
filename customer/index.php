@@ -32,7 +32,8 @@ try {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ON;ME LINE Reservation</title>
-  <link rel="stylesheet" href="../assets/css/customer.css?v=8">
+  <link rel="stylesheet" href="../assets/css/customer.css?v=14">
+  <link rel="stylesheet" href="../assets/css/customer-date-fix.css?v=1">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
@@ -118,8 +119,15 @@ try {
         <p>空き時間</p>
       </div>
 
-      <div class="date-strip" id="dateStrip"></div>
-      <input type="date" id="reserveDate" value="<?= date('Y-m-d') ?>" class="hidden-date">
+      <div class="calendar-picker">
+        <div class="month-head">
+          <button type="button" id="prevMonth">←</button>
+          <strong id="monthTitle">-</strong>
+          <button type="button" id="nextMonth">→</button>
+        </div>
+        <div class="date-strip" id="dateStrip"></div>
+        <input type="date" id="reserveDate" value="<?= date('Y-m-d') ?>" class="hidden-date">
+      </div>
 
       <div class="summary-bar">
         <div>
@@ -179,6 +187,6 @@ try {
   </nav>
 
   <div class="toast" id="toast"></div>
-  <script src="../assets/js/customer-reserve.js?v=8"></script>
+  <script src="../assets/js/customer-reserve.js?v=15"></script>
 </body>
 </html>

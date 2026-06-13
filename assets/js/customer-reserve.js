@@ -1,15 +1,22 @@
 (() => {
   const LIFF_ID = '2010388216-TNXdkDdZ';
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
   const state = {
     menuId: null,
     staffId: null,
     duration: 0,
     price: 0,
     date: document.getElementById('reserveDate')?.value,
+    calendarMonth: null,
     start: null,
     options: new Map(),
     lineUserId: '',
   };
+
+  state.calendarMonth = new Date(state.date);
+  state.calendarMonth.setDate(1);
 
   const yen = n => `¥${Number(n || 0).toLocaleString()}`;
   const $ = sel => document.querySelector(sel);
@@ -35,28 +42,52 @@
   }
 
   function formatDate(date) {
-    return date.toISOString().slice(0, 10);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function daysInMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   }
 
   function renderDateStrip() {
     const strip = $('#dateStrip');
     if (!strip) return;
-    const base = new Date(state.date);
+
+    const year = state.calendarMonth.getFullYear();
+    const month = state.calendarMonth.getMonth();
+    const monthTitle = $('#monthTitle');
+    if (monthTitle) {
+      monthTitle.textContent = `${year}年 ${month + 1}月`;
+    }
+
+    const last = daysInMonth(state.calendarMonth);
     const html = [];
-    for (let i = -2; i <= 8; i++) {
-      const d = new Date(base);
-      d.setDate(base.getDate() + i);
+
+    for (let day = 1; day <= last; day++) {
+      const d = new Date(year, month, day);
+      d.setHours(0,0,0,0);
       const iso = formatDate(d);
-      const day = d.getDate();
       const week = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+      const disabled = d < today;
       html.push(`
-        <button type="button" class="date-chip ${iso === state.date ? 'active' : ''}" data-date="${iso}">
+        <button type="button"
+          class="date-chip ${iso === state.date ? 'active' : ''} ${disabled ? 'disabled' : ''}"
+          data-date="${iso}" ${disabled ? 'disabled' : ''}>
           <small>${week}</small>
           <strong>${day}</strong>
         </button>
       `);
     }
+
     strip.innerHTML = html.join('');
+
+    setTimeout(() => {
+      const active = strip.querySelector('.date-chip.active');
+      active?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 50);
   }
 
   async function initLiff() {
@@ -181,11 +212,25 @@
 
   $('#dateStrip')?.addEventListener('click', e => {
     const btn = e.target.closest('.date-chip');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     state.date = btn.dataset.date;
     $('#reserveDate').value = state.date;
     state.start = null;
     loadSlots();
+  });
+
+  $('#prevMonth')?.addEventListener('click', () => {
+    const prev = new Date(state.calendarMonth);
+    prev.setMonth(prev.getMonth() - 1);
+    state.calendarMonth = prev;
+    renderDateStrip();
+  });
+
+  $('#nextMonth')?.addEventListener('click', () => {
+    const next = new Date(state.calendarMonth);
+    next.setMonth(next.getMonth() + 1);
+    state.calendarMonth = next;
+    renderDateStrip();
   });
 
   $('#slotList').addEventListener('click', e => {
