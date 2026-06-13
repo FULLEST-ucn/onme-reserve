@@ -1,0 +1,10 @@
+/* Sprint11 extra */
+.inline-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.inline-form input{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.1);
+  color:var(--text);
+  padding:13px 14px;
+  font:inherit;
+}
