@@ -163,7 +163,10 @@ h1{
   width:100%;
   margin-top:8px;
 }
-.reserve-submit{
+.reserve-submit,.complete-button{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
   border:none;
   border-radius:999px;
   padding:20px 24px;
@@ -172,7 +175,12 @@ h1{
   font:inherit;
   font-weight:900;
   font-size:18px;
+  text-decoration:none;
 }
+.reserve-submit:disabled{opacity:.62}
+.complete-page{min-height:100vh;display:grid;place-items:center}
+.complete-hero{text-align:center;min-height:auto}
+.complete-hero .complete-button{margin-top:24px}
 .toast{
   position:fixed;
   left:50%;
@@ -187,6 +195,7 @@ h1{
   font-weight:900;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
   transition:.25s;
+  z-index:99;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:720px){

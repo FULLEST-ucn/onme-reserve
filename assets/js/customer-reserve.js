@@ -13,11 +13,16 @@
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
 
+  async function getLineUserId() {
+    // LIFF導入後にここでline_user_idを取得する
+    return '';
+  }
+
   function toast(msg) {
     const el = $('#toast');
     el.textContent = msg;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2200);
+    setTimeout(() => el.classList.remove('show'), 2600);
   }
 
   function updateSummary() {
@@ -114,6 +119,7 @@
     btn.classList.add('active');
     state.start = btn.dataset.start;
     updateSummary();
+    document.querySelector('[data-step="5"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   $('#reserveDate').addEventListener('change', e => {
@@ -144,14 +150,25 @@
       toast('メニュー・スタッフ・日時を選択してください。');
       return;
     }
+
+    const submitBtn = e.target.querySelector('.reserve-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '予約中...';
+
     const fd = new FormData(e.target);
+    fd.append('line_user_id', await getLineUserId());
+
     const res = await fetch('../api/reserve.php', { method: 'POST', body: fd });
     const data = await res.json().catch(() => ({}));
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = '予約する';
+
     if (res.ok && data.ok) {
-      toast('予約が完了しました。');
-      e.target.reset();
+      location.href = './complete.php';
     } else {
       toast(data.error || '予約に失敗しました。');
+      loadSlots();
     }
   });
 
