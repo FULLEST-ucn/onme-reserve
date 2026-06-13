@@ -2,47 +2,57 @@
 require_once __DIR__ . '/../config/db.php';
 
 $today = date('Y-m-d');
+$monthStart = date('Y-m-01');
+$monthEnd = date('Y-m-t');
+
 $stats = [
   'today_reservations' => 0,
   'month_reservations' => 0,
   'today_sales' => 0,
   'month_sales' => 0,
 ];
-
-$reservations = [];
+$todayRows = [];
+$error = '';
 
 try {
   $pdo = db();
 
-  $stats['today_reservations'] = (int)$pdo->query("SELECT COUNT(*) FROM reservations WHERE DATE(start_datetime) = CURDATE() AND status IN ('reserved','confirmed')")->fetchColumn();
-  $stats['month_reservations'] = (int)$pdo->query("SELECT COUNT(*) FROM reservations WHERE DATE_FORMAT(start_datetime, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status IN ('reserved','confirmed')")->fetchColumn();
+  $stmt = $pdo->prepare("
+    SELECT COUNT(*) AS c, COALESCE(SUM(m.price),0) AS sales
+    FROM reservations r
+    LEFT JOIN menus m ON m.id = r.menu_id
+    WHERE DATE(r.start_datetime) = ?
+      AND r.status IN ('reserved','confirmed','completed')
+  ");
+  $stmt->execute([$today]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+  $stats['today_reservations'] = (int)($row['c'] ?? 0);
+  $stats['today_sales'] = (int)($row['sales'] ?? 0);
 
-  $stmt = $pdo->query("
-    SELECT r.id, r.start_datetime, r.end_datetime, r.status,
-           c.name AS customer_name, s.name AS staff_name, m.name AS menu_name, m.price
+  $stmt = $pdo->prepare("
+    SELECT COUNT(*) AS c, COALESCE(SUM(m.price),0) AS sales
+    FROM reservations r
+    LEFT JOIN menus m ON m.id = r.menu_id
+    WHERE DATE(r.start_datetime) BETWEEN ? AND ?
+      AND r.status IN ('reserved','confirmed','completed')
+  ");
+  $stmt->execute([$monthStart, $monthEnd]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+  $stats['month_reservations'] = (int)($row['c'] ?? 0);
+  $stats['month_sales'] = (int)($row['sales'] ?? 0);
+
+  $stmt = $pdo->prepare("
+    SELECT r.*, c.name AS customer_name, s.name AS staff_name, m.name AS menu_name, m.price
     FROM reservations r
     LEFT JOIN customers c ON c.id = r.customer_id
     LEFT JOIN staffs s ON s.id = r.staff_id
     LEFT JOIN menus m ON m.id = r.menu_id
-    WHERE DATE(r.start_datetime) = CURDATE()
+    WHERE DATE(r.start_datetime) = ?
+      AND r.status IN ('reserved','confirmed','completed')
     ORDER BY r.start_datetime ASC
   ");
-  $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-  foreach ($reservations as $r) {
-    if (in_array($r['status'], ['reserved','confirmed'], true)) {
-      $stats['today_sales'] += (int)($r['price'] ?? 0);
-    }
-  }
-
-  $stmt = $pdo->query("
-    SELECT COALESCE(SUM(m.price),0)
-    FROM reservations r
-    LEFT JOIN menus m ON m.id = r.menu_id
-    WHERE DATE_FORMAT(r.start_datetime, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
-      AND r.status IN ('reserved','confirmed')
-  ");
-  $stats['month_sales'] = (int)$stmt->fetchColumn();
+  $stmt->execute([$today]);
+  $todayRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
   $error = $e->getMessage();
 }
@@ -52,86 +62,106 @@ try {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ON;ME Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css?v=6">
+  <title>Dashboard | ON;ME OS</title>
+  <link rel="stylesheet" href="../assets/css/admin-pro.css?v=21">
+  <link rel="stylesheet" href="../assets/css/os-pro.css?v=21">
+  <link rel="stylesheet" href="../assets/css/admin-dashboard-pro.css?v=1">
 </head>
-<body class="admin-body">
-  <header class="admin-header">
-    <div>
-      <p class="eyebrow">ON;ME OS</p>
-      <h1>Dashboard</h1>
+<body class="pro-body">
+  <aside class="pro-sidebar">
+    <div class="brand">
+      <small>ON;ME OS</small>
+      <strong>Salon</strong>
     </div>
-    <nav class="admin-nav">
+    <nav>
       <a class="active" href="./index.php">Dashboard</a>
-      <a href="./calendar.php">Calendar</a>
-      <a href="./reservations.php">予約</a>
-      <a href="./customers.php">顧客</a>
-      <a href="./menus.php">メニュー</a>
+      <a href="./calendar-pro.php">Calendar Pro</a>
+      <a href="./reservations.php">Reservations</a>
+      <a href="./customers.php">Customers</a>
+      <a href="./carte-pro.php">Carte Pro</a>
+      <a href="./menus.php">Menus</a>
+      <a href="./analytics-pro.php">Analytics</a>
+      <a href="./crm-pro.php">LINE CRM</a>
+      <a href="./pos-pro.php">POS</a>
+      <a href="./ai-concierge.php">AI</a>
+      <a href="./owner-dashboard.php">Owner</a>
     </nav>
-  </header>
+  </aside>
 
-  <main class="admin-shell">
-    <?php if (!empty($error)): ?>
-      <section class="panel notice">
-        <strong>DB接続確認：</strong><?= htmlspecialchars($error) ?>
-      </section>
+  <main class="pro-main">
+    <header class="pro-top dashboard-hero">
+      <div>
+        <p class="eyebrow">ON;ME OS</p>
+        <h1>Dashboard</h1>
+        <p class="dashboard-lead">本日の予約・売上・運用状況を確認できます。</p>
+      </div>
+      <div class="pro-actions">
+        <a class="pro-button primary" href="./calendar-pro.php">カレンダーを見る</a>
+        <a class="pro-button" href="./staff-dashboard.php">スタッフ画面</a>
+      </div>
+    </header>
+
+    <?php if ($error): ?>
+      <section class="os-panel"><?= htmlspecialchars($error) ?></section>
     <?php endif; ?>
 
-    <section class="dashboard-grid">
-      <article class="metric-card">
+    <section class="analytics-kpi">
+      <article>
         <span>Today Reservations</span>
         <strong><?= number_format($stats['today_reservations']) ?></strong>
       </article>
-      <article class="metric-card">
+      <article>
         <span>Month Reservations</span>
         <strong><?= number_format($stats['month_reservations']) ?></strong>
       </article>
-      <article class="metric-card">
+      <article>
         <span>Today Sales</span>
         <strong>¥<?= number_format($stats['today_sales']) ?></strong>
       </article>
-      <article class="metric-card">
+      <article>
         <span>Month Sales</span>
         <strong>¥<?= number_format($stats['month_sales']) ?></strong>
       </article>
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">TODAY</p>
-          <h2>本日の予約</h2>
+    <section class="dashboard-layout">
+      <article class="os-panel dashboard-main-panel">
+        <div class="panel-title">
+          <div>
+            <p class="eyebrow">TODAY</p>
+            <h2>本日の予約</h2>
+          </div>
+          <a class="pro-button" href="./calendar-pro.php">カレンダーを見る</a>
         </div>
-        <a class="admin-link-button" href="./calendar.php">カレンダーを見る</a>
-      </div>
 
-      <div class="table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>時間</th>
-              <th>お客様</th>
-              <th>スタッフ</th>
-              <th>メニュー</th>
-              <th>状態</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (!$reservations): ?>
-              <tr><td colspan="5" class="empty-cell">本日の予約はありません。</td></tr>
-            <?php endif; ?>
-            <?php foreach($reservations as $r): ?>
-              <tr>
-                <td><?= date('H:i', strtotime($r['start_datetime'])) ?>〜<?= date('H:i', strtotime($r['end_datetime'])) ?></td>
-                <td><?= htmlspecialchars($r['customer_name'] ?? '-') ?></td>
-                <td><?= htmlspecialchars($r['staff_name'] ?? '-') ?></td>
-                <td><?= htmlspecialchars($r['menu_name'] ?? '-') ?></td>
-                <td><span class="status-pill"><?= htmlspecialchars($r['status']) ?></span></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
+        <div class="dashboard-reservation-list">
+          <?php if (!$todayRows): ?>
+            <p class="muted-text">本日の予約はありません。</p>
+          <?php endif; ?>
+
+          <?php foreach($todayRows as $r): ?>
+            <article class="dashboard-reservation">
+              <time><?= date('H:i', strtotime($r['start_datetime'])) ?></time>
+              <div>
+                <strong><?= htmlspecialchars($r['customer_name'] ?? 'お客様') ?></strong>
+                <span><?= htmlspecialchars($r['staff_name'] ?? '-') ?> / <?= htmlspecialchars($r['menu_name'] ?? '-') ?></span>
+              </div>
+              <em><?= htmlspecialchars($r['status']) ?></em>
+            </article>
+          <?php endforeach; ?>
+        </div>
+      </article>
+
+      <article class="os-panel">
+        <p class="eyebrow">SHORTCUT</p>
+        <h2>Quick Actions</h2>
+        <div class="quick-grid">
+          <a href="./calendar-pro.php">受付時間を追加</a>
+          <a href="./carte-pro.php">カルテを見る</a>
+          <a href="./analytics-pro.php">売上分析</a>
+          <a href="./crm-pro.php">LINE配信</a>
+        </div>
+      </article>
     </section>
   </main>
 </body>
