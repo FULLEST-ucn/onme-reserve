@@ -32,14 +32,22 @@ try {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ON;ME LINE Reservation</title>
-  <link rel="stylesheet" href="../assets/css/customer.css?v=4">
+  <link rel="stylesheet" href="../assets/css/customer.css?v=8">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
   <main class="reserve-app">
     <section class="hero">
       <p class="eyebrow">LINE RESERVATION</p>
-      <h1>ON;ME NAIL</h1>
+      <h1>ON;ME<br><span>Reserve.</span></h1>
       <p class="lead">ご希望のメニュー・スタッフ・日時をお選びください。</p>
+      <div class="progress" aria-label="予約ステップ">
+        <button class="progress-dot active" data-jump="1">Menu</button>
+        <button class="progress-dot" data-jump="2">Option</button>
+        <button class="progress-dot" data-jump="3">Staff</button>
+        <button class="progress-dot" data-jump="4">Date</button>
+        <button class="progress-dot" data-jump="5">Confirm</button>
+      </div>
     </section>
 
     <section class="step-card" data-step="1">
@@ -57,7 +65,7 @@ try {
             data-duration="<?= (int)$menu['duration_minutes'] ?>"
             data-price="<?= (int)$menu['price'] ?>">
             <strong><?= htmlspecialchars($menu['name']) ?></strong>
-            <span>¥<?= number_format((int)$menu['price']) ?> / <?= (int)$menu['duration_minutes'] ?>分</span>
+            <span><b><?= (int)$menu['duration_minutes'] ?>min</b> ¥<?= number_format((int)$menu['price']) ?></span>
           </button>
         <?php endforeach; ?>
       </div>
@@ -78,7 +86,7 @@ try {
             data-duration="<?= (int)$option['duration_minutes'] ?>"
             data-price="<?= (int)$option['price'] ?>">
             <strong><?= htmlspecialchars($option['name']) ?></strong>
-            <span>+<?= (int)$option['duration_minutes'] ?>分 / ¥<?= number_format((int)$option['price']) ?></span>
+            <span>+<?= (int)$option['duration_minutes'] ?>min / ¥<?= number_format((int)$option['price']) ?></span>
           </button>
         <?php endforeach; ?>
       </div>
@@ -109,11 +117,10 @@ try {
         </div>
         <p>空き時間</p>
       </div>
-      <div class="date-line">
-        <button type="button" id="prevDate">前日</button>
-        <input type="date" id="reserveDate" value="<?= date('Y-m-d') ?>">
-        <button type="button" id="nextDate">翌日</button>
-      </div>
+
+      <div class="date-strip" id="dateStrip"></div>
+      <input type="date" id="reserveDate" value="<?= date('Y-m-d') ?>" class="hidden-date">
+
       <div class="summary-bar">
         <div>
           <small>合計時間</small>
@@ -137,13 +144,21 @@ try {
         </div>
         <p>お客様情報</p>
       </div>
+      <div class="line-profile" id="lineProfile" hidden>
+        <img id="linePicture" alt="">
+        <div>
+          <small>LINE PROFILE</small>
+          <strong id="lineName"></strong>
+        </div>
+      </div>
       <form id="reserveForm" class="reserve-form">
         <input type="hidden" name="menu_id" id="formMenuId">
         <input type="hidden" name="staff_id" id="formStaffId">
         <input type="hidden" name="date" id="formDate">
         <input type="hidden" name="start_time" id="formStart">
         <input type="hidden" name="duration" id="formDuration">
-        <label>お名前<input type="text" name="name" required placeholder="例）山田 花子"></label>
+        <input type="hidden" name="line_user_id" id="formLineUserId">
+        <label>お名前<input type="text" name="name" id="customerName" required placeholder="例）山田 花子"></label>
         <label>電話番号<input type="tel" name="phone" required placeholder="例）09012345678"></label>
         <label>お支払い方法
           <select name="payment_method">
@@ -157,7 +172,13 @@ try {
     </section>
   </main>
 
+  <nav class="bottom-nav">
+    <a href="./index.php" class="active">Reserve</a>
+    <a href="./mypage.php">My Page</a>
+    <a href="../admin/">Admin</a>
+  </nav>
+
   <div class="toast" id="toast"></div>
-  <script src="../assets/js/customer-reserve.js?v=4"></script>
+  <script src="../assets/js/customer-reserve.js?v=8"></script>
 </body>
 </html>

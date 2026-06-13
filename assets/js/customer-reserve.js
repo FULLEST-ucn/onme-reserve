@@ -1,4 +1,5 @@
 (() => {
+  const LIFF_ID = '2010388216-TNXdkDdZ';
   const state = {
     menuId: null,
     staffId: null,
@@ -7,22 +8,80 @@
     date: document.getElementById('reserveDate')?.value,
     start: null,
     options: new Map(),
+    lineUserId: '',
   };
 
   const yen = n => `¥${Number(n || 0).toLocaleString()}`;
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
-
-  async function getLineUserId() {
-    // LIFF導入後にここでline_user_idを取得する
-    return '';
-  }
+  const stepCard = n => document.querySelector(`[data-step="${n}"]`);
 
   function toast(msg) {
     const el = $('#toast');
     el.textContent = msg;
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function setProgress(step) {
+    $$('.progress-dot').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.jump) <= step);
+    });
+  }
+
+  function jump(step) {
+    setProgress(step);
+    stepCard(step)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function formatDate(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  function renderDateStrip() {
+    const strip = $('#dateStrip');
+    if (!strip) return;
+    const base = new Date(state.date);
+    const html = [];
+    for (let i = -2; i <= 8; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const iso = formatDate(d);
+      const day = d.getDate();
+      const week = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+      html.push(`
+        <button type="button" class="date-chip ${iso === state.date ? 'active' : ''}" data-date="${iso}">
+          <small>${week}</small>
+          <strong>${day}</strong>
+        </button>
+      `);
+    }
+    strip.innerHTML = html.join('');
+  }
+
+  async function initLiff() {
+    try {
+      if (!window.liff) return;
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isInClient() && !liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        state.lineUserId = profile.userId || '';
+        $('#formLineUserId').value = state.lineUserId;
+        if (profile.displayName) $('#customerName').value = profile.displayName;
+        const box = $('#lineProfile');
+        if (box) {
+          box.hidden = false;
+          $('#lineName').textContent = profile.displayName || 'LINE User';
+          if (profile.pictureUrl) $('#linePicture').src = profile.pictureUrl;
+        }
+      }
+    } catch (e) {
+      console.log('LIFF init skipped:', e);
+    }
   }
 
   function updateSummary() {
@@ -33,10 +92,12 @@
     $('#formDate').value = state.date || '';
     $('#formStart').value = state.start || '';
     $('#formDuration').value = state.duration || '';
+    $('#formLineUserId').value = state.lineUserId || '';
   }
 
   async function loadSlots() {
     updateSummary();
+    renderDateStrip();
     const list = $('#slotList');
     if (!state.menuId || !state.staffId || !state.duration) {
       list.innerHTML = '<p class="empty">メニューとスタッフを選択してください。</p>';
@@ -62,6 +123,10 @@
     `).join('');
   }
 
+  $$('.progress-dot').forEach(btn => {
+    btn.addEventListener('click', () => jump(Number(btn.dataset.jump)));
+  });
+
   $$('.menu-item').forEach(btn => {
     btn.addEventListener('click', () => {
       $$('.menu-item').forEach(b => b.classList.remove('active'));
@@ -73,6 +138,7 @@
       state.price = Number(btn.dataset.price) + optionPrice;
       state.start = null;
       loadSlots();
+      jump(2);
     });
   });
 
@@ -109,7 +175,17 @@
       state.staffId = btn.dataset.id;
       state.start = null;
       loadSlots();
+      jump(4);
     });
+  });
+
+  $('#dateStrip')?.addEventListener('click', e => {
+    const btn = e.target.closest('.date-chip');
+    if (!btn) return;
+    state.date = btn.dataset.date;
+    $('#reserveDate').value = state.date;
+    state.start = null;
+    loadSlots();
   });
 
   $('#slotList').addEventListener('click', e => {
@@ -119,29 +195,7 @@
     btn.classList.add('active');
     state.start = btn.dataset.start;
     updateSummary();
-    document.querySelector('[data-step="5"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  $('#reserveDate').addEventListener('change', e => {
-    state.date = e.target.value;
-    state.start = null;
-    loadSlots();
-  });
-
-  $('#prevDate').addEventListener('click', () => {
-    const d = new Date(state.date);
-    d.setDate(d.getDate() - 1);
-    state.date = d.toISOString().slice(0,10);
-    $('#reserveDate').value = state.date;
-    loadSlots();
-  });
-
-  $('#nextDate').addEventListener('click', () => {
-    const d = new Date(state.date);
-    d.setDate(d.getDate() + 1);
-    state.date = d.toISOString().slice(0,10);
-    $('#reserveDate').value = state.date;
-    loadSlots();
+    jump(5);
   });
 
   $('#reserveForm').addEventListener('submit', async e => {
@@ -156,8 +210,6 @@
     submitBtn.textContent = '予約中...';
 
     const fd = new FormData(e.target);
-    fd.append('line_user_id', await getLineUserId());
-
     const res = await fetch('../api/reserve.php', { method: 'POST', body: fd });
     const data = await res.json().catch(() => ({}));
 
@@ -172,5 +224,7 @@
     }
   });
 
+  initLiff();
+  renderDateStrip();
   updateSummary();
 })();
