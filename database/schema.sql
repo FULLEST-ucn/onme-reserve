@@ -1,0 +1,41 @@
+-- ON;ME OS MySQL schema draft
+
+CREATE TABLE staffs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(20) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  role VARCHAR(30) NOT NULL DEFAULT 'staff',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE menus (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  price INT NOT NULL DEFAULT 0,
+  duration_minutes INT NOT NULL DEFAULT 90,
+  is_active TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE availability (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  staff_id INT NOT NULL,
+  date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE reservations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_name VARCHAR(120) NOT NULL,
+  phone VARCHAR(40),
+  line_user_id VARCHAR(120),
+  staff_id INT NOT NULL,
+  menu_id INT NOT NULL,
+  date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'requested',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
