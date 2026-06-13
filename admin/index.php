@@ -1,30 +1,138 @@
 <?php
-require dirname(__DIR__) . '/config/bootstrap.php';
-require_admin();
-$staff = current_staff();
-$reservations = storage_json('reservations', []);
-$availability = storage_json('availability', []);
+require_once __DIR__ . '/../config/db.php';
+
+$today = date('Y-m-d');
+$stats = [
+  'today_reservations' => 0,
+  'month_reservations' => 0,
+  'today_sales' => 0,
+  'month_sales' => 0,
+];
+
+$reservations = [];
+
+try {
+  $pdo = db();
+
+  $stats['today_reservations'] = (int)$pdo->query("SELECT COUNT(*) FROM reservations WHERE DATE(start_datetime) = CURDATE() AND status IN ('reserved','confirmed')")->fetchColumn();
+  $stats['month_reservations'] = (int)$pdo->query("SELECT COUNT(*) FROM reservations WHERE DATE_FORMAT(start_datetime, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status IN ('reserved','confirmed')")->fetchColumn();
+
+  $stmt = $pdo->query("
+    SELECT r.id, r.start_datetime, r.end_datetime, r.status,
+           c.name AS customer_name, s.name AS staff_name, m.name AS menu_name, m.price
+    FROM reservations r
+    LEFT JOIN customers c ON c.id = r.customer_id
+    LEFT JOIN staffs s ON s.id = r.staff_id
+    LEFT JOIN menus m ON m.id = r.menu_id
+    WHERE DATE(r.start_datetime) = CURDATE()
+    ORDER BY r.start_datetime ASC
+  ");
+  $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+  foreach ($reservations as $r) {
+    if (in_array($r['status'], ['reserved','confirmed'], true)) {
+      $stats['today_sales'] += (int)($r['price'] ?? 0);
+    }
+  }
+
+  $stmt = $pdo->query("
+    SELECT COALESCE(SUM(m.price),0)
+    FROM reservations r
+    LEFT JOIN menus m ON m.id = r.menu_id
+    WHERE DATE_FORMAT(r.start_datetime, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+      AND r.status IN ('reserved','confirmed')
+  ");
+  $stats['month_sales'] = (int)$stmt->fetchColumn();
+} catch (Throwable $e) {
+  $error = $e->getMessage();
+}
 ?>
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ON;ME Admin</title><link rel="stylesheet" href="/assets/css/admin.css"></head>
-<body>
-<header class="admin-header"><div><p>ON;ME OS</p><h1><?=h($staff['name'])?> Dashboard</h1></div><a href="/admin/logout.php">ログアウト</a></header>
-<main class="admin-wrap">
-<section class="stats">
- <div><span>本日予約</span><b><?=count($reservations)?></b></div>
- <div><span>受付可能時間</span><b><?=count($availability)?></b></div>
- <div><span>スタッフ</span><b>2</b></div>
-</section>
-<section class="board">
- <div class="board-head"><h2>受付可能時間</h2><a class="btn" href="/admin/availability.php">追加・編集</a></div>
- <?php foreach($availability as $a): ?>
-   <article class="row"><strong><?=h(strtoupper($a['staff']))?></strong><span><?=h($a['date'])?> <?=h($a['start'])?>〜<?=h($a['end'])?></span></article>
- <?php endforeach; ?>
-</section>
-<section class="board">
- <div class="board-head"><h2>予約一覧</h2></div>
- <?php foreach(array_reverse($reservations) as $r): ?>
-   <article class="row"><strong><?=h($r['name'] ?? '')?></strong><span><?=h($r['slot']['date'] ?? '')?> <?=h($r['slot']['start'] ?? '')?>〜<?=h($r['slot']['end'] ?? '')?> / <?=h($r['menu']['name'] ?? '')?></span></article>
- <?php endforeach; ?>
-</section>
-</main>
-</body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ON;ME Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css?v=6">
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">ON;ME OS</p>
+      <h1>Dashboard</h1>
+    </div>
+    <nav class="admin-nav">
+      <a class="active" href="./index.php">Dashboard</a>
+      <a href="./calendar.php">Calendar</a>
+      <a href="./reservations.php">予約</a>
+      <a href="./customers.php">顧客</a>
+      <a href="./menus.php">メニュー</a>
+    </nav>
+  </header>
+
+  <main class="admin-shell">
+    <?php if (!empty($error)): ?>
+      <section class="panel notice">
+        <strong>DB接続確認：</strong><?= htmlspecialchars($error) ?>
+      </section>
+    <?php endif; ?>
+
+    <section class="dashboard-grid">
+      <article class="metric-card">
+        <span>Today Reservations</span>
+        <strong><?= number_format($stats['today_reservations']) ?></strong>
+      </article>
+      <article class="metric-card">
+        <span>Month Reservations</span>
+        <strong><?= number_format($stats['month_reservations']) ?></strong>
+      </article>
+      <article class="metric-card">
+        <span>Today Sales</span>
+        <strong>¥<?= number_format($stats['today_sales']) ?></strong>
+      </article>
+      <article class="metric-card">
+        <span>Month Sales</span>
+        <strong>¥<?= number_format($stats['month_sales']) ?></strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">TODAY</p>
+          <h2>本日の予約</h2>
+        </div>
+        <a class="admin-link-button" href="./calendar.php">カレンダーを見る</a>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>お客様</th>
+              <th>スタッフ</th>
+              <th>メニュー</th>
+              <th>状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!$reservations): ?>
+              <tr><td colspan="5" class="empty-cell">本日の予約はありません。</td></tr>
+            <?php endif; ?>
+            <?php foreach($reservations as $r): ?>
+              <tr>
+                <td><?= date('H:i', strtotime($r['start_datetime'])) ?>〜<?= date('H:i', strtotime($r['end_datetime'])) ?></td>
+                <td><?= htmlspecialchars($r['customer_name'] ?? '-') ?></td>
+                <td><?= htmlspecialchars($r['staff_name'] ?? '-') ?></td>
+                <td><?= htmlspecialchars($r['menu_name'] ?? '-') ?></td>
+                <td><span class="status-pill"><?= htmlspecialchars($r['status']) ?></span></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
