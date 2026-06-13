@@ -1,4 +1,5 @@
 <?php
-require dirname(__DIR__) . '/config/bootstrap.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
 session_destroy();
-redirect('/admin/login.php');
+header('Location: ./login.php');
+exit;
