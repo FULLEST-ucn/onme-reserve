@@ -1,0 +1,61 @@
+/* Customer Create */
+.customer-create-lead{
+  margin:14px 0 0;
+  color:var(--muted);
+  font-weight:800;
+}
+.customer-create-layout{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr;
+  gap:18px;
+}
+.customer-create-form{
+  display:grid;
+  gap:14px;
+}
+.customer-create-form label{
+  color:var(--muted);
+  font-weight:900;
+}
+.customer-create-form input,
+.customer-create-form textarea{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+}
+.customer-create-form button{
+  border:0;
+  border-radius:999px;
+  padding:16px 18px;
+  background:#fff;
+  color:#050505;
+  font:inherit;
+  font-weight:900;
+}
+.customer-create-guide h2{
+  font-size:42px;
+  letter-spacing:-.07em;
+}
+.guide-list{
+  display:grid;
+  gap:12px;
+}
+.guide-list span{
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+  background:rgba(255,255,255,.07);
+  font-weight:900;
+}
+@media(max-width:980px){
+  .customer-create-layout{
+    grid-template-columns:1fr;
+  }
+}

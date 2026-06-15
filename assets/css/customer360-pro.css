@@ -1,0 +1,235 @@
+/* Customer 360 Prototype */
+.customer-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+  margin-bottom:18px;
+}
+.customer-hero h1{
+  font-size:clamp(56px,7vw,110px);
+  letter-spacing:-.09em;
+  line-height:.86;
+  margin:0;
+}
+.customer-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:22px;
+}
+.customer-badges span{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:10px 14px;
+  background:rgba(255,255,255,.08);
+  font-weight:900;
+}
+.customer-hero-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:end;
+  justify-content:flex-end;
+}
+.customer-switcher{
+  min-width:280px;
+  display:grid;
+  gap:7px;
+}
+.customer-switcher span{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.16em;
+}
+.customer-switcher select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:14px 18px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+  backdrop-filter:var(--blur);
+}
+.customer-switcher select option{
+  color:#050505;
+}
+.customer-kpi{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.customer-kpi article{
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:20px;
+  background:rgba(255,255,255,.075);
+  backdrop-filter:var(--blur);
+}
+.customer-kpi span{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+}
+.customer-kpi strong{
+  display:block;
+  font-size:clamp(30px,4vw,52px);
+  letter-spacing:-.07em;
+  margin-top:8px;
+}
+.customer360-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:18px;
+}
+.timeline-panel{
+  grid-row:span 3;
+}
+.profile-form,
+.note-form{
+  display:grid;
+  gap:12px;
+}
+.profile-form label{
+  color:var(--muted);
+  font-weight:900;
+}
+.profile-form input,
+.profile-form textarea,
+.note-form textarea{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+}
+.profile-form button,
+.note-form button{
+  border:0;
+  border-radius:999px;
+  padding:15px 18px;
+  background:#fff;
+  color:#050505;
+  font:inherit;
+  font-weight:900;
+}
+.ai-list,
+.action-list,
+.mini-list,
+.note-list{
+  display:grid;
+  gap:12px;
+}
+.ai-list div,
+.action-list article,
+.mini-list article,
+.note-list article{
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:16px;
+  background:rgba(255,255,255,.07);
+}
+.ai-list span,
+.action-list span,
+.mini-list span{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  font-size:12px;
+}
+.ai-list strong,
+.action-list strong,
+.mini-list strong{
+  display:block;
+  font-size:18px;
+  margin-top:6px;
+}
+.timeline-list{
+  display:grid;
+  gap:14px;
+}
+.timeline-card{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:14px;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:18px;
+  background:rgba(255,255,255,.07);
+}
+.timeline-card time{
+  color:#fff;
+  font-weight:900;
+  font-size:13px;
+}
+.timeline-card strong{
+  display:block;
+  font-size:22px;
+}
+.timeline-card span{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-top:6px;
+}
+.timeline-card p,
+.note-list p{
+  margin:10px 0 0;
+  color:rgba(255,255,255,.82);
+  font-weight:800;
+}
+.photo-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.photo-grid img,
+.photo-placeholder{
+  aspect-ratio:1;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.08);
+  object-fit:cover;
+  width:100%;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+@media(max-width:1200px){
+  .customer360-grid,
+  .customer-kpi{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:760px){
+  .customer-hero{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .customer-hero-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+  .customer-switcher{
+    width:100%;
+    min-width:0;
+  }
+  .customer360-grid,
+  .customer-kpi,
+  .timeline-card{
+    grid-template-columns:1fr;
+  }
+}

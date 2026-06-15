@@ -1,0 +1,15 @@
+/* CRM Unified */
+.crm-lead{margin:14px 0 0;color:var(--muted);font-weight:800}
+.crm-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.crm-kpi article{border:1px solid var(--line);border-radius:28px;padding:20px;background:rgba(255,255,255,.075);backdrop-filter:var(--blur)}
+.crm-kpi span{display:block;color:var(--muted);font-weight:900}
+.crm-kpi strong{display:block;font-size:42px;letter-spacing:-.07em;margin-top:8px}
+.crm-layout{display:grid;grid-template-columns:.72fr 1.28fr;gap:18px}
+.crm-segment-list,.crm-customer-list{display:grid;gap:12px}
+.crm-segment-list a{display:block;border:1px solid var(--line);border-radius:22px;padding:18px;background:rgba(255,255,255,.075);color:#fff;text-decoration:none;font-weight:900}
+.crm-segment-list a:hover{background:#fff;color:#050505}
+.crm-customer-card{display:flex;justify-content:space-between;align-items:center;gap:16px;border:1px solid var(--line);border-radius:24px;padding:18px;background:rgba(255,255,255,.075)}
+.crm-customer-card strong{display:block;font-size:22px}
+.crm-customer-card span{display:block;color:var(--muted);font-weight:900;margin-top:6px}
+.crm-customer-card a{border-radius:999px;padding:10px 12px;background:#fff;color:#050505;text-decoration:none;font-weight:900;white-space:nowrap}
+@media(max-width:980px){.crm-kpi,.crm-layout{grid-template-columns:1fr}}

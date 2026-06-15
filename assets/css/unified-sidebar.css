@@ -1,0 +1,61 @@
+/* ON;ME OS Japanese unified menu fallback */
+html,body{min-width:1200px;}
+.pro-main, main.pro-main{
+  margin-left:210px!important;
+  width:calc(100vw - 210px)!important;
+  max-width:none!important;
+  min-width:980px!important;
+  padding:32px 42px!important;
+  box-sizing:border-box!important;
+  display:block!important;
+}
+.pro-main *, main.pro-main *{
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+}
+.pro-top{
+  width:100%!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+  margin-bottom:24px!important;
+}
+.pro-top h1,.pro-main h1{
+  display:block!important;
+  max-width:none!important;
+  width:auto!important;
+  white-space:normal!important;
+  font-size:clamp(56px,5vw,92px)!important;
+  line-height:.95!important;
+  letter-spacing:-.08em!important;
+}
+.pos-kpi,.sales-kpi,.register-status,.register-kpi,.detail-kpi,.payment-detail,.cash-detail,.gs-kpi{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:14px!important;
+}
+.register-grid{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(420px,1.1fr) minmax(330px,.8fr) minmax(340px,.85fr)!important;
+  gap:18px!important;
+}
+.sales-layout,.register-layout,.gs-layout{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:1.15fr .85fr!important;
+  gap:18px!important;
+}
+@media(max-width:980px){
+  html,body{min-width:0!important;}
+  .pro-main, main.pro-main{
+    margin-left:0!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:24px!important;
+  }
+}

@@ -1,0 +1,103 @@
+/* POS Unified UI */
+.pos-lead{
+  margin:14px 0 0;
+  color:var(--muted);
+  font-weight:800;
+}
+.pos-kpi{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.pos-kpi article{
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:20px;
+  background:rgba(255,255,255,.075);
+  backdrop-filter:var(--blur);
+}
+.pos-kpi span{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+}
+.pos-kpi strong{
+  display:block;
+  font-size:42px;
+  letter-spacing:-.07em;
+  margin-top:8px;
+}
+.pos-layout{
+  display:grid;
+  grid-template-columns:.85fr 1.15fr;
+  gap:18px;
+}
+.pos-form{
+  display:grid;
+  gap:14px;
+}
+.pos-form label{
+  color:var(--muted);
+  font-weight:900;
+}
+.pos-form input,
+.pos-form select,
+.pos-form textarea{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+}
+.pos-form button{
+  border:0;
+  border-radius:999px;
+  padding:16px 18px;
+  background:#fff;
+  color:#050505;
+  font:inherit;
+  font-weight:900;
+}
+.pos-sales-list{
+  display:grid;
+  gap:12px;
+}
+.pos-sale-card{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:18px;
+  background:rgba(255,255,255,.075);
+}
+.pos-sale-card strong{
+  display:block;
+  font-size:22px;
+}
+.pos-sale-card span{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-top:6px;
+}
+.pos-sale-card time{
+  border-radius:999px;
+  padding:10px 12px;
+  background:#fff;
+  color:#050505;
+  font-weight:900;
+}
+@media(max-width:980px){
+  .pos-kpi,
+  .pos-layout{
+    grid-template-columns:1fr;
+  }
+}

@@ -1,0 +1,120 @@
+/* Staff Pro */
+.staff-lead,
+.staff-note{
+  margin:14px 0 0;
+  color:var(--muted);
+  font-weight:800;
+}
+.staff-layout{
+  display:grid;
+  grid-template-columns:.72fr 1.28fr;
+  gap:18px;
+}
+.staff-form{
+  display:grid;
+  gap:14px;
+}
+.staff-form label,
+.staff-row small{
+  color:var(--muted);
+  font-weight:900;
+}
+.staff-form input,
+.staff-form select,
+.staff-row input,
+.staff-row select{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+}
+.staff-form button,
+.save-staff-button{
+  border:0;
+  border-radius:999px;
+  padding:16px 18px;
+  background:#fff;
+  color:#050505;
+  font:inherit;
+  font-weight:900;
+}
+.staff-panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:18px;
+}
+.staff-panel-head h2{
+  margin:0;
+  font-size:42px;
+  letter-spacing:-.07em;
+}
+.staff-table-head{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 150px 90px;
+  gap:12px;
+  padding:0 16px 10px;
+  color:rgba(255,255,255,.42);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.16em;
+}
+.staff-list{
+  display:grid;
+  gap:12px;
+  margin-bottom:16px;
+}
+.staff-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 150px 90px;
+  gap:12px;
+  align-items:end;
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:14px;
+  background:rgba(255,255,255,.065);
+}
+.staff-row small{
+  display:none;
+  font-size:11px;
+  margin-bottom:6px;
+}
+.staff-actions button{
+  width:100%;
+  min-height:50px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+}
+.staff-actions button:hover{
+  background:#fff;
+  color:#050505;
+}
+@media(max-width:1200px){
+  .staff-table-head{
+    display:none;
+  }
+  .staff-layout{
+    grid-template-columns:1fr;
+  }
+  .staff-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .staff-row small{
+    display:block;
+  }
+}
+@media(max-width:680px){
+  .staff-row{
+    grid-template-columns:1fr;
+  }
+}

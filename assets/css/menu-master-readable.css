@@ -1,0 +1,145 @@
+/* Menu Master Readable UI */
+.menu-lead{
+  margin:14px 0 0;
+  color:var(--muted);
+  font-weight:800;
+}
+
+.menu-master-panel{
+  border:1px solid var(--line);
+  border-radius:34px;
+  padding:22px;
+  background:rgba(255,255,255,.075);
+  backdrop-filter:var(--blur);
+  box-shadow:0 24px 80px rgba(0,0,0,.36);
+}
+
+.menu-master-head{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:flex-end;
+  margin-bottom:18px;
+}
+
+.menu-master-head h2{
+  margin:0;
+  font-size:42px;
+  letter-spacing:-.07em;
+}
+
+.save-button{
+  border:0;
+  border-radius:999px;
+  padding:15px 22px;
+  background:#fff;
+  color:#050505;
+  font:inherit;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.menu-table-header{
+  display:grid;
+  grid-template-columns:90px 1.1fr 110px 130px 1.5fr 96px;
+  gap:12px;
+  padding:0 16px 10px;
+  color:rgba(255,255,255,.42);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.16em;
+}
+
+.menu-master-list{
+  display:grid;
+  gap:12px;
+}
+
+.menu-master-row{
+  display:grid;
+  grid-template-columns:90px 1.1fr 110px 130px 1.5fr 96px;
+  gap:12px;
+  align-items:end;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:24px;
+  padding:14px;
+  background:rgba(255,255,255,.055);
+}
+
+.menu-master-row small{
+  display:none;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.menu-master-row input{
+  width:100%;
+  min-height:48px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  padding:0 14px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  outline:none;
+}
+
+.menu-master-row input:focus{
+  border-color:#fff;
+  background:rgba(255,255,255,.14);
+}
+
+.name-field input{
+  font-size:18px;
+  letter-spacing:-.03em;
+}
+
+.description-field input{
+  font-weight:800;
+  color:rgba(255,255,255,.86);
+}
+
+.delete-menu-button{
+  width:100%;
+  min-height:48px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:16px;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.delete-menu-button:hover{
+  background:#fff;
+  color:#050505;
+}
+
+@media(max-width:1280px){
+  .menu-table-header{
+    display:none;
+  }
+  .menu-master-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .description-field,
+  .name-field{
+    grid-column:1 / -1;
+  }
+  .menu-master-row small{
+    display:block;
+  }
+}
+
+@media(max-width:680px){
+  .menu-master-head{
+    display:grid;
+  }
+  .menu-master-row{
+    grid-template-columns:1fr;
+  }
+}

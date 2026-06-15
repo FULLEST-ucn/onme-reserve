@@ -1,0 +1,66 @@
+/* POS Register UI */
+.pos-top-actions{display:flex!important;gap:12px!important;align-items:center!important}
+.register-close-button,
+.pro-button.danger{
+  background:linear-gradient(135deg,#ef4444,#b91c1c)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,120,120,.45)!important;
+  box-shadow:0 12px 34px rgba(239,68,68,.28)!important;
+}
+.register-close-button:hover{filter:brightness(1.08)}
+.pos-error{border-color:rgba(255,120,120,.55)!important;background:rgba(255,90,90,.14)!important}
+.pos-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.pos-kpi article,.register-panel{border:1px solid var(--line);border-radius:28px;padding:20px;background:rgba(255,255,255,.075);backdrop-filter:var(--blur)}
+.pos-kpi span{display:block;color:var(--muted);font-weight:900}
+.pos-kpi strong{display:block;font-size:clamp(26px,3vw,44px);letter-spacing:-.07em;margin-top:8px}
+.register-grid{display:grid;grid-template-columns:1.1fr .8fr .85fr;gap:18px;align-items:start}
+.panel-title{margin-bottom:16px}
+.panel-title h2{margin:0;font-size:34px;letter-spacing:-.06em}
+.reservation-row{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px}
+.input-label,.reservation-row label{display:block;color:var(--muted);font-weight:900}
+.input-label input,.input-label textarea,.reservation-row select,.custom-item-row input{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:18px;padding:14px 16px;background:rgba(255,255,255,.09);color:#fff;font:inherit;font-weight:900;outline:none}
+select option{color:#050505}
+.custom-item-box{border:1px solid var(--line);border-radius:22px;padding:14px;background:rgba(255,255,255,.055);margin-bottom:14px}
+.custom-item-box h3{margin:4px 0 10px;font-size:24px;letter-spacing:-.05em}
+.custom-item-row{display:grid;grid-template-columns:1fr 130px 88px;gap:8px;align-items:end}
+.custom-item-row button{border:0;border-radius:16px;padding:14px;background:#fff;color:#050505;font:inherit;font-weight:900}
+.menu-list{display:grid;gap:10px;max-height:480px;overflow:auto;padding-right:6px}
+.menu-item{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid var(--line);border-radius:18px;padding:16px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;text-align:left}
+.menu-item:hover{background:#fff;color:#050505}
+.menu-item strong{white-space:nowrap}
+.discount-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0 20px}
+.discount-buttons button,.payment-methods label span{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;text-align:center}
+.payment-methods{display:grid;gap:10px;margin:20px 0}
+.payment-methods p{color:var(--muted);font-weight:900;margin:0}
+.payment-methods label{cursor:pointer}
+.payment-methods input{position:absolute;opacity:0}
+.payment-methods input:checked + span{display:block;background:#fff;color:#050505}
+.payment-methods label span{display:block}
+.cart-list{display:grid;gap:10px;min-height:120px;margin-bottom:16px}
+.cart-item{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,.08)}
+.cart-item strong{font-size:16px}
+.cart-item span{font-weight:900;color:var(--muted)}
+.cart-item button{border:0;border-radius:999px;background:#2a0f0f;color:#ffb4b4;font-weight:900;padding:8px 10px}
+.total-box{display:grid;gap:12px;margin:18px 0}
+.total-box div{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:10px}
+.total-box span,.change-box span{color:var(--muted);font-weight:900}
+.total-box strong{font-size:24px}
+.total-box .grand strong{font-size:44px;letter-spacing:-.07em}
+.change-box{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:22px;padding:16px;background:rgba(255,255,255,.08);margin:16px 0}
+.change-box strong{font-size:42px;letter-spacing:-.07em;color:#fff}
+.deposit-area.is-short input{border-color:#ef4444;background:rgba(239,68,68,.14)}
+.deposit-error{display:block;margin-top:8px;color:#ff9b9b;font-weight:900}
+.checkout-button{width:100%;border:0;border-radius:999px;padding:18px;background:#fff;color:#050505;font:inherit;font-weight:950}
+.checkout-button:disabled{opacity:.38;cursor:not-allowed}
+.history-panel{margin-top:18px}
+.sales-list{display:grid;gap:12px}
+.sale-card{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid var(--line);border-radius:22px;padding:16px;background:rgba(255,255,255,.075)}
+.sale-card.is-void{opacity:.45;filter:grayscale(1)}
+.sale-card strong{display:block;font-size:22px}
+.sale-card span,.sale-card em{display:block;color:var(--muted);font-style:normal;font-weight:900;margin-top:5px}
+.sale-card button{border:1px solid rgba(255,120,120,.35);border-radius:999px;padding:12px 14px;background:#2a0f0f;color:#ffb4b4;font:inherit;font-weight:900}
+.change-toast{position:fixed;right:28px;bottom:28px;z-index:1000;border:1px solid var(--line);border-radius:28px;padding:20px 28px;background:#fff;color:#050505;box-shadow:0 30px 90px rgba(0,0,0,.45)}
+.change-toast span{display:block;font-weight:900;color:#555}
+.change-toast strong{display:block;font-size:54px;letter-spacing:-.08em}
+@media(max-width:1380px){.pos-kpi{grid-template-columns:repeat(2,1fr)}.register-grid{grid-template-columns:1fr 1fr}.total-panel{grid-column:span 2}}
+@media(max-width:860px){.pos-kpi,.register-grid,.total-panel,.custom-item-row{grid-template-columns:1fr}.total-panel{grid-column:auto}.sale-card{align-items:flex-start;flex-direction:column}.pos-top-actions{flex-wrap:wrap}}

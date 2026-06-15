@@ -1,111 +1,74 @@
 <?php
 require_once __DIR__ . '/../config/auth.php';
-require_owner();
-
-$segment = $_GET['segment'] ?? 'all';
-$customers = [];
-$message = '';
-$saved = false;
-
+require_login();
+$error=''; $customers=[]; $segments=['all'=>0,'vip'=>0,'lost'=>0,'new'=>0];
 try {
-  $pdo = db();
-
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = trim($_POST['title'] ?? '');
-    $segment = $_POST['segment'] ?? 'all';
-    $message = trim($_POST['message'] ?? '');
-    $count = (int)($_POST['target_count'] ?? 0);
-
-    $stmt = $pdo->prepare("INSERT INTO line_campaigns (title, segment, message, target_count, created_at) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->execute([$title, $segment, $message, $count]);
-    $saved = true;
-  }
-
-  $where = "1=1";
-  if ($segment === 'line') $where = "c.line_user_id IS NOT NULL AND c.line_user_id <> ''";
-  if ($segment === 'lost90') $where = "latest.last_visit <= DATE_SUB(NOW(), INTERVAL 90 DAY)";
-  if ($segment === 'repeat') $where = "latest.visit_count >= 2";
-
-  $stmt = $pdo->query("
-    SELECT c.*, latest.last_visit, latest.visit_count
+  $pdo=db();
+  $customers=$pdo->query("
+    SELECT c.*, COUNT(r.id) visit_count, MAX(r.start_datetime) last_visit, COALESCE(SUM(m.price),0) ltv
     FROM customers c
-    LEFT JOIN (
-      SELECT customer_id, MAX(start_datetime) AS last_visit, COUNT(*) AS visit_count
-      FROM reservations
-      GROUP BY customer_id
-    ) latest ON latest.customer_id = c.id
-    WHERE {$where}
-    ORDER BY latest.last_visit DESC
-    LIMIT 300
-  ");
-  $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch(Throwable $e) {
-  $error = $e->getMessage();
-}
-
-$template = "いつもON;ME NAILをご利用いただきありがとうございます✨\n\n新しいデザインをご用意しております。\nご予約お待ちしております💅";
+    LEFT JOIN reservations r ON r.customer_id=c.id
+    LEFT JOIN menus m ON m.id=r.menu_id
+    GROUP BY c.id
+    ORDER BY c.id DESC
+    LIMIT 100
+  ")->fetchAll(PDO::FETCH_ASSOC);
+  $segments['all']=count($customers);
+  foreach($customers as $c){
+    if((int)($c['ltv']??0)>=30000) $segments['vip']++;
+    if(empty($c['last_visit']) || strtotime($c['last_visit']) <= strtotime('-90 days')) $segments['lost']++;
+    if((int)($c['visit_count']??0)<=1) $segments['new']++;
+  }
+} catch(Throwable $e){ $error=$e->getMessage(); }
 ?>
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LINE CRM | ON;ME OS</title>
-  <link rel="stylesheet" href="../assets/css/admin-pro.css?v=20">
-  <link rel="stylesheet" href="../assets/css/os-pro.css?v=20">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LINE | ON;ME OS</title>
+  <link rel="stylesheet" href="../assets/css/admin-pro.css?v=79">
+  <link rel="stylesheet" href="../assets/css/os-pro.css?v=79">
+  <link rel="stylesheet" href="../assets/css/suite40.css?v=79">
+  <link rel="stylesheet" href="../assets/css/suite60.css?v=79">
+  <link rel="stylesheet" href="../assets/css/unified-sidebar.css?v=7">
+  <link rel="stylesheet" href="../assets/css/crm-unified.css?v=1">
 </head>
 <body class="pro-body">
-  <aside class="pro-sidebar">
-    <div class="brand"><small>ON;ME OS</small><strong>CRM</strong></div>
-    <nav>
-      <a href="./staff-dashboard.php">Dashboard</a>
-      <a href="./analytics-pro.php">Analytics</a>
-      <a class="active" href="./crm-pro.php">LINE CRM</a>
-      <a href="./owner-dashboard.php">Owner</a>
-    </nav>
-  </aside>
-
+  <?php include __DIR__ . '/partials/sidebar.php'; ?>
   <main class="pro-main">
     <header class="pro-top">
-      <div><p class="eyebrow">LINE SEGMENT MESSAGE</p><h1>LINE CRM</h1></div>
-      <form class="analytics-filter" method="get">
-        <select name="segment">
-          <option value="all" <?= $segment==='all'?'selected':'' ?>>全顧客</option>
-          <option value="line" <?= $segment==='line'?'selected':'' ?>>LINE連携済</option>
-          <option value="repeat" <?= $segment==='repeat'?'selected':'' ?>>リピーター</option>
-          <option value="lost90" <?= $segment==='lost90'?'selected':'' ?>>90日以上未来店</option>
-        </select>
-        <button>抽出</button>
-      </form>
+      <div><p class="eyebrow">CRM / LINE</p><h1>LINE</h1><p class="crm-lead">顧客セグメント・配信対象・来店状況を管理できます。</p></div>
+      <div class="pro-actions"><a class="pro-button primary" href="./line-automation.php">LINE Automation</a></div>
     </header>
-
-    <?php if (!empty($saved)): ?><section class="os-panel success">キャンペーン下書きを保存しました。</section><?php endif; ?>
-
-    <section class="os-two">
-      <section class="os-panel">
-        <p class="eyebrow">MESSAGE</p>
-        <h2>配信作成</h2>
-        <form method="post" class="os-form">
-          <input type="hidden" name="segment" value="<?= htmlspecialchars($segment) ?>">
-          <input type="hidden" name="target_count" value="<?= count($customers) ?>">
-          <label>タイトル<input name="title" value="<?= htmlspecialchars(date('Y/m/d').' 配信') ?>"></label>
-          <label>本文<textarea name="message" rows="10"><?= htmlspecialchars($template) ?></textarea></label>
-          <button>下書き保存</button>
-        </form>
-      </section>
-
-      <section class="os-panel">
-        <p class="eyebrow">TARGET</p>
-        <h2>対象 <?= count($customers) ?>名</h2>
-        <div class="os-list">
+    <?php if($error): ?><section class="os-panel"><?= htmlspecialchars($error) ?></section><?php endif; ?>
+    <section class="crm-kpi">
+      <article><span>全顧客</span><strong><?= number_format($segments['all']) ?></strong></article>
+      <article><span>VIP</span><strong><?= number_format($segments['vip']) ?></strong></article>
+      <article><span>休眠</span><strong><?= number_format($segments['lost']) ?></strong></article>
+      <article><span>新規</span><strong><?= number_format($segments['new']) ?></strong></article>
+    </section>
+    <section class="crm-layout">
+      <article class="os-panel">
+        <p class="eyebrow">SEGMENT</p><h2>配信セグメント</h2>
+        <div class="crm-segment-list">
+          <a href="./line-segment-pro.php?segment=all">全員配信</a>
+          <a href="./line-segment-pro.php?segment=vip">VIP顧客</a>
+          <a href="./line-segment-pro.php?segment=lost">90日未来店</a>
+          <a href="./line-segment-pro.php?segment=new">新規顧客</a>
+        </div>
+      </article>
+      <article class="os-panel">
+        <p class="eyebrow">CUSTOMERS</p><h2>顧客一覧</h2>
+        <div class="crm-customer-list">
+          <?php if(!$customers): ?><p class="muted-text">顧客データがありません。</p><?php endif; ?>
           <?php foreach($customers as $c): ?>
-            <article class="os-list-item">
-              <strong><?= htmlspecialchars($c['name']) ?></strong>
-              <span><?= htmlspecialchars($c['phone'] ?? '-') ?> / <?= !empty($c['line_user_id']) ? 'LINE連携済' : '未連携' ?></span>
+            <article class="crm-customer-card">
+              <div><strong><?= htmlspecialchars($c['name'] ?? '-') ?></strong><span>来店 <?= (int)($c['visit_count'] ?? 0) ?>回 / LTV ¥<?= number_format((int)($c['ltv'] ?? 0)) ?></span></div>
+              <a href="./customer-360.php?id=<?= (int)$c['id'] ?>">詳細</a>
             </article>
           <?php endforeach; ?>
         </div>
-      </section>
+      </article>
     </section>
   </main>
 </body>
